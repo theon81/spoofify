@@ -1,6 +1,6 @@
-# flutter_finals
+# Spoofify Mobile Music Player
 
-A new Flutter project.
+A Flutter project for the Mobile Programming class. 
 
 ## Getting Started
 
