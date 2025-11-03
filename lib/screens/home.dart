@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/song.dart';
 import '../data/sample_songs.dart';
+import '../models/playback_settings.dart';
 import 'player.dart';
 
 /// home screen
@@ -12,7 +13,7 @@ class HomeScreen extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Material(
-      color: theme.colorScheme.background,
+      color: theme.colorScheme.surface,
       child: SafeArea(
         child: Column(
           children: [
@@ -39,14 +40,17 @@ class HomeScreen extends StatelessWidget {
                 separatorBuilder: (_, __) => const Divider(height: 1),
                 itemBuilder: (context, index) {
                   final Song s = sampleSongs[index];
+                  final settings = PlaybackSettingsProvider.of(context);
+                  final selected = settings.currentSongId == s.id;
                   return ListTile(
-                    leading: CircleAvatar( /////////////either artist pfp or play button, leaning towards play button/removal, song cover also works (spotify)
+                    leading: CircleAvatar(
                       child: Text(s.title.characters.first),
                     ),
-                    title: Text(s.title),
-                    subtitle: Text(s.artist),
+                    title: Text(s.title, style: TextStyle(color: selected ? theme.colorScheme.secondary : null)),
+                    subtitle: Text(s.artist, style: TextStyle(color: selected ? theme.colorScheme.secondary : null)),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () {
+                      settings.setCurrentSong(s.id);
                       Navigator.of(context).push(MaterialPageRoute(builder: (_) => PlayerScreen(song: s)));
                     },
                   );

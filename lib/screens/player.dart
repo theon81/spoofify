@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/song.dart';
+import '../models/playback_settings.dart';
 
 /// player screen
 class PlayerScreen extends StatelessWidget {
@@ -11,8 +12,10 @@ class PlayerScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
+    final settings = PlaybackSettingsProvider.of(context);
+
     return Material(
-      color: theme.colorScheme.background,
+      color: theme.colorScheme.surface,
       child: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -49,14 +52,21 @@ class PlayerScreen extends StatelessWidget {
             const SizedBox(height: 8),
             Text(song.artist, style: theme.textTheme.bodyLarge),
             const Spacer(),
-
             // controls
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                IconButton(onPressed: () {}, icon: const Icon(Icons.skip_previous), iconSize: 36),
-                const SizedBox(width: 16),
-                // circular play button
+                // shuffle
+                IconButton(
+                  onPressed: () => settings.toggleShuffle(),
+                  icon: Icon(Icons.shuffle,
+                      color: settings.shuffle ? theme.colorScheme.secondary : theme.colorScheme.onSurface),
+                ),
+                const SizedBox(width: 12),
+                // basic control
+                IconButton(onPressed: () {}, icon: const Icon(Icons.skip_previous), iconSize: 36, color: theme.colorScheme.onSurface),
+                const SizedBox(width: 8),
+                // play button
                 Material(
                   shape: const CircleBorder(),
                   color: theme.colorScheme.primary,
@@ -66,8 +76,15 @@ class PlayerScreen extends StatelessWidget {
                     iconSize: 28,
                   ),
                 ),
-                const SizedBox(width: 16),
-                IconButton(onPressed: () {}, icon: const Icon(Icons.skip_next), iconSize: 36),
+                const SizedBox(width: 8),
+                IconButton(onPressed: () {}, icon: const Icon(Icons.skip_next), iconSize: 36, color: theme.colorScheme.onSurface),
+                const SizedBox(width: 12),
+                // loop
+                IconButton(
+                  onPressed: () => settings.cycleLoopMode(),
+                  icon: _loopIcon(settings.loopMode),
+                  color: (settings.loopMode == LoopMode.off) ? theme.colorScheme.onSurface : theme.colorScheme.secondary,
+                ),
               ],
             ),
             const SizedBox(height: 32),
@@ -75,5 +92,16 @@ class PlayerScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+Widget _loopIcon(LoopMode mode) {
+  switch (mode) {
+    case LoopMode.off:
+      return const Icon(Icons.repeat);
+    case LoopMode.one:
+      return const Icon(Icons.repeat_one);
+    case LoopMode.all:
+      return const Icon(Icons.repeat);
   }
 }
