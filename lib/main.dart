@@ -8,7 +8,6 @@ Future<void> main() async {
 
   // user color palette
   const background = Color(0xFF1A1A1D);
-  const surfaceVariant = Color(0xFF3B1C32);
   const primaryColor = Color(0xFF6A1E55);
   const highlight = Color(0xFFA64D79);
 
@@ -18,8 +17,7 @@ Future<void> main() async {
   manager.attachSettings(settings);
 
   final colorScheme = ColorScheme.dark(
-    background: background,
-    surface: surfaceVariant,
+    surface: background,
     primary: primaryColor,
     secondary: highlight,
     onPrimary: Colors.white,

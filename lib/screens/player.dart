@@ -3,7 +3,8 @@ import '../models/song.dart';
 import '../models/playback_settings.dart';
 import '../services/playback_manager.dart';
 
-/// player screen
+
+/// song screen
 class PlayerScreen extends StatelessWidget {
   final Song song;
 
@@ -12,84 +13,84 @@ class PlayerScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
-  final settings = PlaybackSettingsProvider.of(context);
-  final manager = PlaybackManagerProvider.of(context);
+    final settings = PlaybackSettingsProvider.of(context);
+    final manager = PlaybackManagerProvider.of(context);
 
     return Material(
-      color: theme.colorScheme.surface,
+      color: theme.colorScheme.background,
       child: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Custom top bar
+            // top bar
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
               color: theme.colorScheme.primary,
               child: Row(
                 children: [
-                  IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: Icon(Icons.arrow_back, color: theme.colorScheme.onPrimary),
-                  ),
+                  GestureDetector(onTap: () => Navigator.of(context).pop(), child: const Icon(Icons.arrow_back, color: Colors.white)),
                   const SizedBox(width: 8),
-                  Expanded(child: Text(song.title, style: theme.textTheme.titleMedium?.copyWith(color: theme.colorScheme.onPrimary))),
+                  Expanded(child: Text(song.title, style: const TextStyle(color: Colors.white, fontSize: 18))),
                 ],
               ),
             ),
 
             const SizedBox(height: 16),
-            // big placeholder cover
+
+            // cover
             Container(
               width: 240,
               height: 240,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(8),
-              ),
+              decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(8)),
               child: Center(child: Text(song.title, textAlign: TextAlign.center)),
             ),
-            const SizedBox(height: 24),
-            Text(song.title, style: theme.textTheme.headlineSmall),
-            const SizedBox(height: 8),
-            Text(song.artist, style: theme.textTheme.bodyLarge),
+
+            const SizedBox(height: 20),
+
+            // title, artist
+            Text(song.title, style: const TextStyle(color: Colors.white, fontSize: 20)),
+            const SizedBox(height: 6),
+            Text(song.artist, style: const TextStyle(color: Colors.white70)),
+
             const Spacer(),
+
             // controls
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // shuffle
-                IconButton(
-                  onPressed: () => settings.toggleShuffle(),
-                  icon: Icon(Icons.shuffle,
-                      color: settings.shuffle ? theme.colorScheme.secondary : theme.colorScheme.onSurface),
-                ),
-                const SizedBox(width: 12),
-                // basic control
-                IconButton(onPressed: () => manager.previous(), icon: const Icon(Icons.skip_previous), iconSize: 36, color: theme.colorScheme.onSurface),
-                const SizedBox(width: 8),
-                // play button
-                Material(
-                  shape: const CircleBorder(),
-                  color: theme.colorScheme.primary,
-                  child: IconButton(
-                    onPressed: () => manager.togglePlay(),
-                    icon: Icon(manager.playing ? Icons.pause : Icons.play_arrow, color: theme.colorScheme.onPrimary),
-                    iconSize: 28,
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // shuffle
+                  GestureDetector(onTap: () => settings.toggleShuffle(), child: Icon(Icons.shuffle, color: settings.shuffle ? theme.colorScheme.secondary : Colors.white)),
+                  const SizedBox(width: 24),
+
+                  // prev
+                  GestureDetector(onTap: () => manager.previous(), child: const Icon(Icons.skip_previous, color: Colors.white, size: 32)),
+                  const SizedBox(width: 16),
+
+                  // play, pause
+                  GestureDetector(
+                    onTap: () => manager.togglePlay(),
+                    child: Container(
+                      width: 56,
+                      height: 56,
+                      decoration: BoxDecoration(color: theme.colorScheme.primary, shape: BoxShape.circle),
+                      child: Center(child: Icon(manager.playing ? Icons.pause : Icons.play_arrow, color: Colors.white)),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                IconButton(onPressed: () => manager.next(), icon: const Icon(Icons.skip_next), iconSize: 36, color: theme.colorScheme.onSurface),
-                const SizedBox(width: 12),
-                // loop
-                IconButton(
-                  onPressed: () => settings.cycleLoopMode(),
-                  icon: _loopIcon(settings.loopMode),
-                  color: (settings.loopMode == LoopMode.off) ? theme.colorScheme.onSurface : theme.colorScheme.secondary,
-                ),
-              ],
+                  const SizedBox(width: 16),
+
+                  // next
+                  GestureDetector(onTap: () => manager.next(), child: const Icon(Icons.skip_next, color: Colors.white, size: 32)),
+                  const SizedBox(width: 24),
+
+                  // loop
+                  GestureDetector(onTap: () => settings.cycleLoopMode(), child: _loopIcon(context, settings.loopMode)),
+                ],
+              ),
             ),
-            const SizedBox(height: 32),
+
+            const SizedBox(height: 24),
           ],
         ),
       ),
@@ -97,13 +98,16 @@ class PlayerScreen extends StatelessWidget {
   }
 }
 
-Widget _loopIcon(LoopMode mode) {
+Widget _loopIcon(BuildContext context, LoopMode mode) {
+  final theme = Theme.of(context);
+  final activeColor = theme.colorScheme.secondary;
+
   switch (mode) {
     case LoopMode.off:
-      return const Icon(Icons.repeat);
+      return const Icon(Icons.repeat, color: Colors.white);
     case LoopMode.one:
-      return const Icon(Icons.repeat_one);
+      return Icon(Icons.repeat_one, color: activeColor);
     case LoopMode.all:
-      return const Icon(Icons.repeat);
+      return Icon(Icons.repeat, color: activeColor);
   }
 }

@@ -8,23 +8,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:flutter_finals/main.dart';
+import 'package:flutter_finals/screens/home.dart';
+import 'package:flutter_finals/models/playback_settings.dart';
+import 'package:flutter_finals/services/playback_manager.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('Home screen basic smoke test', (WidgetTester tester) async {
+    final settings = PlaybackSettings();
+    final manager = PlaybackManager();
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    // Build HomeScreen inside the real providers so it has the expected context.
+    await tester.pumpWidget(PlaybackSettingsProvider(
+      notifier: settings,
+      child: PlaybackManagerProvider(
+        notifier: manager,
+        child: const MaterialApp(home: HomeScreen()),
+      ),
+    ));
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // Verify title text is present (simple smoke assertion).
+    expect(find.textContaining('Your Music'), findsOneWidget);
   });
 }
