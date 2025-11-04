@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../models/song.dart';
 import '../data/sample_songs.dart';
 import '../models/playback_settings.dart';
 import '../services/playback_manager.dart';
@@ -57,45 +56,49 @@ class _HomeScreenState extends State<HomeScreen> {
     final theme = Theme.of(context);
     switch (idx) {
       case 0:
-        // song list
+        // song list - full-row tappable using asMap so we have the index
         return SingleChildScrollView(
           child: Column(
-            children: sampleSongs.map((s) {
+            children: sampleSongs.asMap().entries.map((entry) {
+              final idx = entry.key;
+              final s = entry.value;
               final settings = PlaybackSettingsProvider.of(context);
               final selected = settings.currentSongId == s.id;
-              return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: const BoxDecoration(),
-                child: Row(
-                  children: [
-                    // cover
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(color: Colors.grey.shade800, borderRadius: BorderRadius.circular(20)),
-                      child: Center(child: Text(s.title.characters.first, style: const TextStyle(color: Colors.white))),
-                    ),
-                    const SizedBox(width: 12),
-                    // title , artist
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(s.title, style: TextStyle(color: selected ? theme.colorScheme.secondary : Colors.white)),
-                          const SizedBox(height: 2),
-                          Text(s.artist, style: TextStyle(color: selected ? theme.colorScheme.secondary : Colors.white.withOpacity(0.8), fontSize: 12)),
-                        ],
+
+              return InkWell(
+                onTap: () {
+                  settings.setCurrentSong(s.id);
+                  final manager = PlaybackManagerProvider.of(context);
+                  manager.playIndex(idx);
+                  Navigator.of(context).push(MaterialPageRoute(builder: (_) => PlayerScreen(song: s)));
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: const BoxDecoration(),
+                  child: Row(
+                    children: [
+                      // cover
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(color: Colors.grey.shade800, borderRadius: BorderRadius.circular(20)),
+                        child: Center(child: Text(s.title.characters.first, style: const TextStyle(color: Colors.white))),
                       ),
-                    ),
-                    // chevron
-                    GestureDetector(
-                      onTap: () {
-                        settings.setCurrentSong(s.id);
-                        Navigator.of(context).push(MaterialPageRoute(builder: (_) => PlayerScreen(song: s)));
-                      },
-                      child: const Icon(Icons.chevron_right, color: Colors.white),
-                    ),
-                  ],
+                      const SizedBox(width: 12),
+                      // title , artist
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(s.title, style: TextStyle(color: selected ? theme.colorScheme.secondary : Colors.white)),
+                            const SizedBox(height: 2),
+                            Text(s.artist, style: TextStyle(color: selected ? theme.colorScheme.secondary : Colors.white.withOpacity(0.8), fontSize: 12)),
+                          ],
+                        ),
+                      ),
+                      const Icon(Icons.chevron_right, color: Colors.white),
+                    ],
+                  ),
                 ),
               );
             }).toList(),

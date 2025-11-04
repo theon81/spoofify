@@ -117,6 +117,18 @@ class PlaybackManager extends ChangeNotifier {
   }
 
   Future<void> next() => _player.seekToNext();
+  
+
+  Future<void> playIndex(int index) async {
+    if (index < 0 || index >= sampleSongs.length) return;
+    try {
+      // seek to the start of the requested index and play
+      await _player.seek(Duration.zero, index: index);
+      await _player.play();
+    } catch (_) {
+      // ignore errors here to keep UI responsive; errors can be logged later
+    }
+  }
   Future<void> previous() async {
     // let the user restart the song instead of going to previous every time
     try {
@@ -142,8 +154,6 @@ class PlaybackManager extends ChangeNotifier {
   }
 }
 
-/// Provider wrapper so widgets can access PlaybackManager with
-/// `PlaybackManagerProvider.of(context)` and rebuild when it notifies.
 class PlaybackManagerProvider extends InheritedNotifier<PlaybackManager> {
   const PlaybackManagerProvider({Key? key, required PlaybackManager notifier, required Widget child}) : super(key: key, notifier: notifier, child: child);
 
