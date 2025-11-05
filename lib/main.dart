@@ -6,7 +6,7 @@ import 'services/playback_manager.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // user color palette
+  // color palette
   const background = Color(0xFF1A1A1D);
   const primaryColor = Color(0xFF6A1E55);
   const highlight = Color(0xFFA64D79);
@@ -22,7 +22,6 @@ Future<void> main() async {
     secondary: highlight,
     onPrimary: Colors.white,
     onSecondary: Colors.white,
-    onBackground: Colors.white,
     onSurface: Colors.white,
   );
 

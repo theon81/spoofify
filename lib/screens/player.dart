@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/song.dart';
+import '../data/sample_songs.dart';
 import '../models/playback_settings.dart';
 import '../services/playback_manager.dart';
 
@@ -24,13 +25,32 @@ class PlayerScreen extends StatelessWidget {
           children: [
             // top bar
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 8,
+                vertical: 10
+              ),
               color: theme.colorScheme.primary,
               child: Row(
                 children: [
-                  GestureDetector(onTap: () => Navigator.of(context).pop(), child: const Icon(Icons.arrow_back, color: Colors.white)),
+                  GestureDetector(
+                    onTap: () => Navigator.of(context).pop(), 
+                    child: const Icon(
+                      Icons.expand_more,
+                      color: Colors.white,
+                    ),
+                  ),
                   const SizedBox(width: 8),
-                  Expanded(child: Text(song.title, style: const TextStyle(color: Colors.white, fontSize: 18))),
+                  Expanded(
+                    child: Center(
+                      child: Text(
+                        'Now Playing',
+                        style: const TextStyle(
+                          color: Colors.white, 
+                          fontSize: 18,
+                        )
+                      )
+                    )
+                  ),
                 ],
               ),
             ),
@@ -38,22 +58,97 @@ class PlayerScreen extends StatelessWidget {
             const SizedBox(height: 16),
 
             // cover
-            Container(
-              width: 240,
-              height: 240,
-              decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(8)),
-              child: Center(child: Text(song.title, textAlign: TextAlign.center)),
-            ),
+            Builder(builder: (ctx) {
+              final currentIdx = manager.currentIndex;
+              final hasTrack = currentIdx != null && currentIdx >= 0 && currentIdx < sampleSongs.length;
+              final displaySong = hasTrack ? sampleSongs[currentIdx] : song;
+
+              if (displaySong.coverPath != null && displaySong.coverPath!.isNotEmpty) {
+                return Container(
+                  width: 240,
+                  height: 240,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8), 
+                    color: Colors.grey.shade900
+                  ),
+
+                  clipBehavior: Clip.hardEdge,
+                  child: Image.asset(
+                    displaySong.coverPath!, 
+                    fit: BoxFit.cover
+                  ),
+                );
+              }
+
+              return Container(
+                width: 240,
+                height: 240,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300, 
+                  borderRadius: BorderRadius.circular(8)
+                ),
+                child: Center(
+                  child: Text(
+                    displaySong.title, 
+                    textAlign: TextAlign.center
+                  )
+                ),
+              );
+            }),
 
             const SizedBox(height: 20),
 
             // title, artist
-            Text(song.title, style: const TextStyle(color: Colors.white, fontSize: 20)),
-            const SizedBox(height: 6),
-            Text(song.artist, style: const TextStyle(color: Colors.white70)),
+              Builder(builder: (ctx) {
+                final currentIdx = manager.currentIndex;
+                final hasTrack = currentIdx != null && currentIdx >= 0 && currentIdx < sampleSongs.length;
+                final displaySong = hasTrack ? sampleSongs[currentIdx] : song;
+
+                return Column(
+                  children: [
+                    Text(
+                      displaySong.title, 
+                      style: const TextStyle(
+                        color: Colors.white, 
+                        fontSize: 20
+                      )
+                    ),
+
+                    const SizedBox(height: 6),
+
+                    Text(
+                      displaySong.artist, 
+                      style: const TextStyle(
+                        color: Colors.white70
+                      )
+                    ),
+                  ],
+                );
+              }),
 
             const Spacer(),
 
+              // progress bar
+              /// tutorial ref: https://api.flutter.dev/flutter/material/LinearProgressIndicator-class.html
+              
+              Builder(builder: (ctx) {
+                final pos = manager.position;
+                final dur = manager.duration ?? Duration.zero;
+                final progress = (dur.inMilliseconds > 0) ? (pos.inMilliseconds / dur.inMilliseconds).clamp(0.0, 1.0) : 0.0;
+                
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  child: LinearProgressIndicator(
+                    value: progress,
+                    minHeight: 4,
+                    backgroundColor: theme.colorScheme.surface.withOpacity(0.2),
+                    valueColor: AlwaysStoppedAnimation(theme.colorScheme.secondary),
+                  ),
+                );
+              }),
+
+              const SizedBox(height: 12),
+              
             // controls
             Container(
               padding: const EdgeInsets.symmetric(vertical: 16),
@@ -61,11 +156,25 @@ class PlayerScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   // shuffle
-                  GestureDetector(onTap: () => settings.toggleShuffle(), child: Icon(Icons.shuffle, color: settings.shuffle ? theme.colorScheme.secondary : Colors.white)),
+                  GestureDetector(
+                    onTap: () => settings.toggleShuffle(), 
+                    child: Icon(
+                      Icons.shuffle, 
+                      color: settings.shuffle ? theme.colorScheme.secondary : Colors.white
+                    )
+                  ),
+
                   const SizedBox(width: 24),
 
                   // prev
-                  GestureDetector(onTap: () => manager.previous(), child: const Icon(Icons.skip_previous, color: Colors.white, size: 32)),
+                  GestureDetector(
+                    onTap: () => manager.previous(), 
+                    child: const Icon(
+                      Icons.skip_previous, 
+                      color: Colors.white, size: 32
+                    )
+                  ),
+
                   const SizedBox(width: 16),
 
                   // play, pause
@@ -75,22 +184,39 @@ class PlayerScreen extends StatelessWidget {
                       width: 56,
                       height: 56,
                       decoration: BoxDecoration(color: theme.colorScheme.primary, shape: BoxShape.circle),
-                      child: Center(child: Icon(manager.playing ? Icons.pause : Icons.play_arrow, color: Colors.white)),
+                      child: Center(
+                        child: Icon(
+                          manager.playing ? Icons.pause : Icons.play_arrow, 
+                          color: Colors.white
+                        )
+                      ),
                     ),
                   ),
+
                   const SizedBox(width: 16),
 
                   // next
-                  GestureDetector(onTap: () => manager.next(), child: const Icon(Icons.skip_next, color: Colors.white, size: 32)),
+                  GestureDetector(
+                    onTap: () => manager.next(), 
+                    child: const Icon(
+                      Icons.skip_next, 
+                      color: Colors.white, 
+                      size: 32
+                    )
+                  ),
+
                   const SizedBox(width: 24),
 
                   // loop
-                  GestureDetector(onTap: () => settings.cycleLoopMode(), child: _loopIcon(context, settings.loopMode)),
+                  GestureDetector(
+                    onTap: () => settings.cycleLoopMode(), 
+                    child: _loopIcon(context, settings.loopMode)
+                  ),
                 ],
               ),
             ),
 
-            const SizedBox(height: 24),
+              const SizedBox(height: 24),
           ],
         ),
       ),

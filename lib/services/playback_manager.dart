@@ -1,8 +1,11 @@
 import 'dart:async';
 
 import 'package:audio_session/audio_session.dart';
+/// https://pub.dev/packages/audio_session
+
 import 'package:just_audio/just_audio.dart' as ja;
-import 'package:flutter/foundation.dart';
+/// audio playback: https://pub.dev/packages/just_audio
+
 import 'package:flutter/widgets.dart';
 
 import '../data/sample_songs.dart';
@@ -31,6 +34,7 @@ class PlaybackManager extends ChangeNotifier {
     await session.configure(const AudioSessionConfiguration.music());
 
     // playlist
+    /// https://pub.dev/documentation/just_audio/latest/just_audio/ConcatenatingAudioSource-class.html
     final sources = sampleSongs
         .map((s) => ja.AudioSource.asset(s.assetPath, tag: {'id': s.id, 'title': s.title, 'artist': s.artist}))
         .toList();
@@ -73,9 +77,11 @@ class PlaybackManager extends ChangeNotifier {
     _settings = settings;
     _settingsListener = () {
       // apply shuffle
+      /// https://pub.dev/documentation/just_audio/latest/just_audio/AudioPlayer/setShuffleModeEnabled.html
       _player.setShuffleModeEnabled(_settings!.shuffle);
 
       // apply loop mode
+      /// https://pub.dev/documentation/just_audio/latest/just_audio/LoopMode-class.html
       switch (_settings!.loopMode) {
         case LoopMode.off:
           _player.setLoopMode(ja.LoopMode.off);
