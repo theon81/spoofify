@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../data/sample_songs.dart';
+import '../models/song.dart';
 import '../models/playback_settings.dart';
 import '../services/playback_manager.dart';
 import 'player.dart';
@@ -56,7 +57,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final theme = Theme.of(context);
     switch (idx) {
       case 0:
-        // song list - full-row tappable using asMap so we have the index
+        // song list
         return SingleChildScrollView(
           child: Column(
             children: sampleSongs.asMap().entries.map((entry) {
@@ -77,22 +78,72 @@ class _HomeScreenState extends State<HomeScreen> {
                   decoration: const BoxDecoration(),
                   child: Row(
                     children: [
-                      // cover
-                      Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(color: Colors.grey.shade800, borderRadius: BorderRadius.circular(20)),
-                        child: Center(child: Text(s.title.characters.first, style: const TextStyle(color: Colors.white))),
-                      ),
+                      // cover: use image if available, else use first letter
+                      s.coverPath != null && s.coverPath!.isNotEmpty
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(6),
+                              child: Image.asset(
+                                s.coverPath!,
+                                width: 40,
+                                height: 40,
+                                fit: BoxFit.cover,
+                                errorBuilder: (ctx, err, st) => Container(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey.shade800,
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      s.title.characters.first,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            )
+                          : Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade800,
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  s.title.characters.first,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+
                       const SizedBox(width: 12),
+
                       // title , artist
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(s.title, style: TextStyle(color: selected ? theme.colorScheme.secondary : Colors.white)),
+                            Text(
+                              s.title, style: TextStyle(
+                                color: selected ? theme.colorScheme.secondary : Colors.white
+                              )
+                            ),
+
                             const SizedBox(height: 2),
-                            Text(s.artist, style: TextStyle(color: selected ? theme.colorScheme.secondary : Colors.white.withOpacity(0.8), fontSize: 12)),
+
+                            Text(
+                              s.artist,
+                              style: TextStyle(
+                                color: selected ? theme.colorScheme.secondary : Colors.white.withOpacity(0.8), 
+                                fontSize: 12
+                              )
+                            ),
                           ],
                         ),
                       ),
@@ -128,13 +179,13 @@ class _MiniPlayer extends StatelessWidget {
     final bool hasTrack = idx != null && idx >= 0 && idx < sampleSongs.length;
 
     // if no track is loaded, show a placeholder mini player
-  final song = hasTrack ? sampleSongs[idx] : null;
+  final Song? activeSong = hasTrack ? sampleSongs[idx] : null;
     final position = hasTrack ? manager.position : Duration.zero;
     final dur = hasTrack ? (manager.duration ?? Duration.zero) : Duration.zero;
     final progress = (dur.inMilliseconds > 0) ? (position.inMilliseconds / dur.inMilliseconds).clamp(0.0, 1.0) : 0.0;
 
     return GestureDetector(
-      onTap: hasTrack ? () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => PlayerScreen(song: song!))) : null,
+      onTap: hasTrack ? () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => PlayerScreen(song: activeSong!))) : null,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -152,15 +203,46 @@ class _MiniPlayer extends StatelessWidget {
             child: Row(
               children: [
                 // small cover / avatar
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade800,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Center(child: Text(hasTrack ? song!.title.characters.first : '-', style: const TextStyle(color: Colors.white))),
-                ),
+                hasTrack && (activeSong?.coverPath ?? '').isNotEmpty
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(6),
+                        child: Image.asset(
+                          activeSong!.coverPath!,
+                          width: 48,
+                          height: 48,
+                          fit: BoxFit.cover,
+                          errorBuilder: (ctx, err, st) => Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade800, 
+                              borderRadius: BorderRadius.circular(6)
+                            ),
+                            child: Center(
+                              child: Text(
+                                activeSong.title.characters.first, 
+                                style: const TextStyle(color: Colors.white)
+                              )
+                            ),
+                          ),
+                        ),
+                      )
+                    : Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade800,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Center(
+                          child: Text(
+                            hasTrack ? activeSong!.title.characters.first : '-', 
+                            style: const TextStyle(
+                              color: Colors.white
+                            )
+                          )
+                        ),
+                      ),
                 const SizedBox(width: 12),
                 // title + artist
                 Expanded(
@@ -168,28 +250,53 @@ class _MiniPlayer extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(hasTrack ? song!.title : 'Not playing', style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurface), maxLines: 1, overflow: TextOverflow.ellipsis),
+                      Text(
+                        hasTrack ? activeSong!.title : 'Not playing', 
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          color: theme.colorScheme.onSurface
+                        ), 
+                        maxLines: 1, 
+                        overflow: TextOverflow.ellipsis
+                      ),
+
                       const SizedBox(height: 2),
-                      Text(hasTrack ? song!.artist : '', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.8)), maxLines: 1, overflow: TextOverflow.ellipsis),
+
+                      Text(
+                        hasTrack ? activeSong!.artist : '', 
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurface.withOpacity(0.8)
+                        ), 
+                        maxLines: 1, 
+                        overflow: TextOverflow.ellipsis
+                      ),
                     ],
                   ),
                 ),
                 // controls
                 IconButton(
                   onPressed: hasTrack ? () => manager.previous() : null,
-                  icon: Icon(Icons.skip_previous, color: hasTrack ? theme.colorScheme.onSurface : theme.colorScheme.onSurface.withOpacity(0.4)),
+                  icon: Icon(
+                    Icons.skip_previous, 
+                    color: hasTrack ? theme.colorScheme.onSurface : theme.colorScheme.onSurface.withOpacity(0.4)
+                  ),
                 ),
                 Material(
                   shape: const CircleBorder(),
                   color: theme.colorScheme.primary,
                   child: IconButton(
                     onPressed: hasTrack ? () => manager.togglePlay() : null,
-                    icon: Icon(manager.playing ? Icons.pause : Icons.play_arrow, color: hasTrack ? theme.colorScheme.onPrimary : theme.colorScheme.onPrimary.withOpacity(0.6)),
+                    icon: Icon(
+                      manager.playing ? Icons.pause : Icons.play_arrow, 
+                      color: hasTrack ? theme.colorScheme.onPrimary : theme.colorScheme.onPrimary.withOpacity(0.6)
+                    ),
                   ),
                 ),
                 IconButton(
                   onPressed: hasTrack ? () => manager.next() : null,
-                  icon: Icon(Icons.skip_next, color: hasTrack ? theme.colorScheme.onSurface : theme.colorScheme.onSurface.withOpacity(0.4)),
+                  icon: Icon(
+                    Icons.skip_next, 
+                    color: hasTrack ? theme.colorScheme.onSurface : theme.colorScheme.onSurface.withOpacity(0.4)
+                  ),
                 ),
               ],
             ),
@@ -231,9 +338,19 @@ class _BottomTabs extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: active ? theme.colorScheme.secondary : theme.colorScheme.onSurface),
+            Icon(
+              icon, 
+              color: active ? theme.colorScheme.secondary : theme.colorScheme.onSurface
+            ),
+
             const SizedBox(height: 4),
-            Text(label, style: theme.textTheme.bodySmall?.copyWith(color: active ? theme.colorScheme.secondary : theme.colorScheme.onSurface)),
+
+            Text(
+              label, 
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: active ? theme.colorScheme.secondary : theme.colorScheme.onSurface
+              )
+            ),
           ],
         ),
       ),
