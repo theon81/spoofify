@@ -32,7 +32,11 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Center(
                 child: Text(
                   _titleForIndex(context, _selectedIndex),
-                  style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    color: Colors.white, 
+                    fontSize: 20, 
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),

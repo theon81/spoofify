@@ -18,7 +18,7 @@ class PlayerScreen extends StatelessWidget {
     final manager = PlaybackManagerProvider.of(context);
 
     return Material(
-      color: theme.colorScheme.background,
+      color: theme.colorScheme.surface,
       child: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -43,12 +43,12 @@ class PlayerScreen extends StatelessWidget {
                   Expanded(
                     child: Center(
                       child: Text(
-                        settings.t('now_playing'),
-                        style: const TextStyle(
-                          color: Colors.white, 
-                          fontSize: 18,
-                        )
-                      )
+                              settings.t('now_playing'),
+                              style: TextStyle(
+                                color: theme.colorScheme.onPrimary, 
+                                fontSize: 18,
+                              )
+                            )
                     )
                   ),
                 ],
@@ -69,7 +69,7 @@ class PlayerScreen extends StatelessWidget {
                   height: 240,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8), 
-                    color: Colors.grey.shade900
+                    color: theme.colorScheme.surface
                   ),
 
                   clipBehavior: Clip.hardEdge,
@@ -84,13 +84,14 @@ class PlayerScreen extends StatelessWidget {
                 width: 240,
                 height: 240,
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade300, 
+                  color: theme.colorScheme.onSurface.withOpacity(0.06), 
                   borderRadius: BorderRadius.circular(8)
                 ),
                 child: Center(
                   child: Text(
                     displaySong.title, 
-                    textAlign: TextAlign.center
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: theme.colorScheme.onSurface),
                   )
                 ),
               );
@@ -108,18 +109,18 @@ class PlayerScreen extends StatelessWidget {
                   children: [
                     Text(
                       displaySong.title, 
-                      style: const TextStyle(
-                        color: Colors.white, 
-                        fontSize: 20
-                      )
+                      style: TextStyle(
+                          color: theme.colorScheme.onSurface, 
+                          fontSize: 20
+                        )
                     ),
 
                     const SizedBox(height: 6),
 
                     Text(
                       displaySong.artist, 
-                      style: const TextStyle(
-                        color: Colors.white70
+                      style: TextStyle(
+                        color: theme.colorScheme.onSurface.withOpacity(0.8)
                       )
                     ),
                   ],
@@ -138,11 +139,11 @@ class PlayerScreen extends StatelessWidget {
                 
                 return Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                  child: LinearProgressIndicator(
+                    child: LinearProgressIndicator(
                     value: progress,
                     minHeight: 4,
-                    backgroundColor: theme.colorScheme.surface.withOpacity(0.2),
-                    valueColor: AlwaysStoppedAnimation(theme.colorScheme.secondary),
+                      backgroundColor: theme.colorScheme.surface.withOpacity(0.2),
+                      valueColor: AlwaysStoppedAnimation(theme.colorScheme.secondary),
                   ),
                 );
               }),
@@ -160,7 +161,7 @@ class PlayerScreen extends StatelessWidget {
                     onTap: () => settings.toggleShuffle(), 
                     child: Icon(
                       Icons.shuffle, 
-                      color: settings.shuffle ? theme.colorScheme.secondary : Colors.white
+                      color: settings.shuffle ? theme.colorScheme.secondary : theme.colorScheme.onSurface
                     )
                   ),
 
@@ -169,9 +170,9 @@ class PlayerScreen extends StatelessWidget {
                   // prev
                   GestureDetector(
                     onTap: () => manager.previous(), 
-                    child: const Icon(
+                    child: Icon(
                       Icons.skip_previous, 
-                      color: Colors.white, size: 32
+                      color: theme.colorScheme.onSurface, size: 32
                     )
                   ),
 
@@ -187,7 +188,7 @@ class PlayerScreen extends StatelessWidget {
                       child: Center(
                         child: Icon(
                           manager.playing ? Icons.pause : Icons.play_arrow, 
-                          color: Colors.white
+                          color: theme.colorScheme.onPrimary
                         )
                       ),
                     ),
@@ -198,9 +199,9 @@ class PlayerScreen extends StatelessWidget {
                   // next
                   GestureDetector(
                     onTap: () => manager.next(), 
-                    child: const Icon(
+                    child: Icon(
                       Icons.skip_next, 
-                      color: Colors.white, 
+                      color: theme.colorScheme.onSurface, 
                       size: 32
                     )
                   ),

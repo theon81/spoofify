@@ -7,9 +7,9 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // color palette
-  const background = Color(0xFF1A1A1D);
-  const primaryColor = Color(0xFF6A1E55);
-  const highlight = Color(0xFFA64D79);
+  const background = Color(0xFF333446);
+  const primaryColor = Color(0xFF7F8CAA);
+  const highlight = Color(0xFFB8CFCE);
 
   final settings = PlaybackSettings();
   final manager = PlaybackManager();
@@ -28,7 +28,6 @@ Future<void> main() async {
   final theme = ThemeData(
     useMaterial3: true,
     colorScheme: colorScheme,
-    textTheme: Typography.whiteMountainView,
     scaffoldBackgroundColor: background,
     appBarTheme: AppBarTheme(backgroundColor: primaryColor, foregroundColor: Colors.white),
   );
