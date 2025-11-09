@@ -60,8 +60,8 @@ class PlayerScreen extends StatelessWidget {
             // cover
             Builder(builder: (ctx) {
               final currentIdx = manager.currentIndex;
-              final hasTrack = currentIdx != null && currentIdx >= 0 && currentIdx < sampleSongs.length;
-              final displaySong = hasTrack ? sampleSongs[currentIdx] : song;
+              final hasTrack = currentIdx != null && currentIdx >= 0 && currentIdx < manager.playlistSongs.length;
+              final displaySong = hasTrack ? manager.playlistSongs[currentIdx] : song;
 
               if (displaySong.coverPath != null && displaySong.coverPath!.isNotEmpty) {
                 return Container(
@@ -102,8 +102,8 @@ class PlayerScreen extends StatelessWidget {
             // title, artist
               Builder(builder: (ctx) {
                 final currentIdx = manager.currentIndex;
-                final hasTrack = currentIdx != null && currentIdx >= 0 && currentIdx < sampleSongs.length;
-                final displaySong = hasTrack ? sampleSongs[currentIdx] : song;
+                final hasTrack = currentIdx != null && currentIdx >= 0 && currentIdx < manager.playlistSongs.length;
+                final displaySong = hasTrack ? manager.playlistSongs[currentIdx] : song;
 
                 return Column(
                   children: [

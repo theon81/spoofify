@@ -2,8 +2,8 @@ class Song {
   final String id;
   final String title;
   final String artist;
-  final String assetPath; // path under assets/ for bundled demo songs
-  final String? coverPath; // optional cover art asset
+  final String assetPath;
+  final String? coverPath;
 
   const Song({
     required this.id,

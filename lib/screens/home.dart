@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
 import '../data/sample_songs.dart';
 import '../models/song.dart';
 import '../models/playback_settings.dart';
@@ -14,7 +15,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _selectedIndex = 0; // 0: songs, 1: playlists, 2: settings
+  int _selectedIndex = 0; // 0: songs, 1: playlists, 2: import, 3: settings
 
   @override
   Widget build(BuildContext context) {
@@ -165,6 +166,69 @@ class _HomeScreenState extends State<HomeScreen> {
         return Center(child: Text(settings.t('playlists_coming'), style: theme.textTheme.bodyLarge));
 
       case 2:
+        // import tab
+        final manager = PlaybackManagerProvider.of(context);
+        final imported = manager.playlistSongs.where((s) => !s.assetPath.startsWith('assets/')).toList();
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Import audio', style: theme.textTheme.titleMedium?.copyWith(color: theme.colorScheme.onSurface)),
+              const SizedBox(height: 12),
+              ElevatedButton.icon(
+                onPressed: () async {
+                  final result = await FilePicker.platform.pickFiles(
+                    type: FileType.custom,
+                    allowMultiple: true,
+                    allowedExtensions: ['mp3', 'wav', 'ogg'],
+                  );
+                  if (result != null && result.files.isNotEmpty) {
+                    for (final f in result.files) {
+                      final path = f.path;
+                      if (path == null) continue;
+                      final song = await manager.importFile(path);
+                      if (song != null) {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Imported: ${song.title}')));
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to import')));
+                      }
+                    }
+                    setState(() {});
+                  }
+                },
+                icon: const Icon(Icons.file_upload),
+                label: const Text('Choose files (.mp3/.wav/.ogg)'),
+              ),
+
+              const SizedBox(height: 16),
+              Text('Imported songs', style: theme.textTheme.titleMedium?.copyWith(color: theme.colorScheme.onSurface)),
+              const SizedBox(height: 8),
+              Expanded(
+                child: imported.isEmpty
+                    ? Center(child: Text('No imported files', style: theme.textTheme.bodyMedium))
+                    : ListView.builder(
+                        itemCount: imported.length,
+                        itemBuilder: (ctx, i) {
+                          final s = imported[i];
+                          final playlistIndex = sampleSongs.length + i;
+                          return ListTile(
+                            title: Text(s.title, style: const TextStyle(color: Colors.white)),
+                            subtitle: Text(s.artist, style: const TextStyle(color: Colors.white70)),
+                            onTap: () {
+                              // play the imported song by its index in the playback playlist
+                              manager.playIndex(playlistIndex);
+                              Navigator.of(context).push(MaterialPageRoute(builder: (_) => PlayerScreen(song: s)));
+                            },
+                          );
+                        },
+                      ),
+              ),
+            ],
+          ),
+        );
+
+      case 3:
         // settings
         return Padding(
           padding: const EdgeInsets.all(16.0),
@@ -255,6 +319,8 @@ class _HomeScreenState extends State<HomeScreen> {
       case 1:
         return settings.t('your_playlists');
       case 2:
+        return settings.t('import');
+      case 3:
         return settings.t('info_settings');
       default:
         return settings.t('your_music');
@@ -271,10 +337,10 @@ class _MiniPlayer extends StatelessWidget {
 
   // first time launch => hide miniplayer, on pause => keep
     final idx = manager.currentIndex;
-    final bool hasTrack = idx != null && idx >= 0 && idx < sampleSongs.length;
+    final bool hasTrack = idx != null && idx >= 0 && idx < manager.playlistSongs.length;
 
     // if no track is loaded, show a placeholder mini player
-  final Song? activeSong = hasTrack ? sampleSongs[idx] : null;
+  final Song? activeSong = hasTrack ? manager.playlistSongs[idx] : null;
     final position = hasTrack ? manager.position : Duration.zero;
     final dur = hasTrack ? (manager.duration ?? Duration.zero) : Duration.zero;
     final progress = (dur.inMilliseconds > 0) ? (position.inMilliseconds / dur.inMilliseconds).clamp(0.0, 1.0) : 0.0;
@@ -418,7 +484,8 @@ class _BottomTabs extends StatelessWidget {
         children: [
           _tabItem(context, icon: Icons.library_music, label: 'songs', index: 0),
           _tabItem(context, icon: Icons.playlist_play, label: 'playlists_tab', index: 1),
-          _tabItem(context, icon: Icons.info, label: 'info_tab', index: 2),
+          _tabItem(context, icon: Icons.file_upload, label: 'import', index: 2),
+          _tabItem(context, icon: Icons.info, label: 'info_tab', index: 3),
         ],
       ),
     );

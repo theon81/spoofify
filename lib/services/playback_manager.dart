@@ -10,6 +10,8 @@ import 'package:flutter/widgets.dart';
 
 import '../data/sample_songs.dart';
 import '../models/playback_settings.dart';
+import '../models/song.dart';
+import 'dart:io';
 
 class PlaybackManager extends ChangeNotifier {
   final ja.AudioPlayer _player = ja.AudioPlayer();
@@ -18,6 +20,13 @@ class PlaybackManager extends ChangeNotifier {
   int? _currentIndex;
   Duration _position = Duration.zero;
   Duration? _duration;
+
+  // playlist songs (initially loaded from sampleSongs, then can be extended
+  // by importing files at runtime)
+  final List<Song> _playlistSongs = List<Song>.from(sampleSongs);
+
+  /// Expose a read-only view of the current playlist for the UI
+  List<Song> get playlistSongs => List.unmodifiable(_playlistSongs);
 
   bool get playing => _playing;
   int? get currentIndex => _currentIndex;
@@ -33,11 +42,16 @@ class PlaybackManager extends ChangeNotifier {
     final session = await AudioSession.instance;
     await session.configure(const AudioSessionConfiguration.music());
 
-    // playlist
+    // playlist: build audio sources from the initial sampleSongs list
     /// https://pub.dev/documentation/just_audio/latest/just_audio/ConcatenatingAudioSource-class.html
-    final sources = sampleSongs
-        .map((s) => ja.AudioSource.asset(s.assetPath, tag: {'id': s.id, 'title': s.title, 'artist': s.artist}))
-        .toList();
+    final sources = _playlistSongs.map((s) {
+      // if asset path looks like an asset (starts with assets/), load as asset
+      if (s.assetPath.startsWith('assets/')) {
+        return ja.AudioSource.asset(s.assetPath, tag: {'id': s.id, 'title': s.title, 'artist': s.artist});
+      }
+      // otherwise treat it as a file path
+      return ja.AudioSource.uri(Uri.file(s.assetPath), tag: {'id': s.id, 'title': s.title, 'artist': s.artist});
+    }).toList();
 
     final playlist = ja.ConcatenatingAudioSource(children: sources);
     await _player.setAudioSource(playlist);
@@ -51,8 +65,8 @@ class PlaybackManager extends ChangeNotifier {
     _player.currentIndexStream.listen((i) {
       _currentIndex = i;
       // update settings currentSongId if available
-      if (i != null && i >= 0 && i < sampleSongs.length) {
-        _settings?.setCurrentSong(sampleSongs[i].id);
+      if (i != null && i >= 0 && i < _playlistSongs.length) {
+        _settings?.setCurrentSong(_playlistSongs[i].id);
       }
       notifyListeners();
     });
@@ -126,7 +140,7 @@ class PlaybackManager extends ChangeNotifier {
   
 
   Future<void> playIndex(int index) async {
-    if (index < 0 || index >= sampleSongs.length) return;
+    if (index < 0 || index >= _playlistSongs.length) return;
     try {
       // seek to the start of the requested index and play
       await _player.seek(Duration.zero, index: index);
@@ -157,6 +171,38 @@ class PlaybackManager extends ChangeNotifier {
       _settings!.removeListener(_settingsListener!);
     }
     super.dispose();
+  }
+
+  /// Import a file path and append it to
+  /// the current playlist.
+  Future<Song?> importFile(String path) async {
+    try {
+      final file = File(path);
+      if (!await file.exists()) return null;
+
+      final title = file.uri.pathSegments.isNotEmpty ? file.uri.pathSegments.last.split('.').first : 'Imported';
+      final id = 'imported-${DateTime.now().millisecondsSinceEpoch}';
+      final song = Song(id: id, title: title, artist: 'Imported', assetPath: path, coverPath: null);
+
+      // create audio source from file URI and add to playlist
+      final source = ja.AudioSource.uri(Uri.file(path), tag: {'id': song.id, 'title': song.title, 'artist': song.artist});
+
+      // append to _player's playlist
+      final current = _player.audioSource;
+      if (current is ja.ConcatenatingAudioSource) {
+        await current.add(source);
+      } else {
+        // if for some reason audioSource is not concatenating, set a new one
+        final playlist = ja.ConcatenatingAudioSource(children: [source]);
+        await _player.setAudioSource(playlist);
+      }
+
+      _playlistSongs.add(song);
+      notifyListeners();
+      return song;
+    } catch (e) {
+      return null;
+    }
   }
 }
 

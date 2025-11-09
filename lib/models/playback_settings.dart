@@ -66,7 +66,7 @@ class PlaybackSettings extends ChangeNotifier {
       'info_tab': 'Info',
       'not_playing': 'Not playing',
       'now_playing': 'Now Playing',
-      // add more keys used in UI as needed
+      'import': 'Import',
     },
     'vi': {
       'your_music': 'Thư viện',
@@ -81,6 +81,7 @@ class PlaybackSettings extends ChangeNotifier {
       'info_tab': 'Thông tin',
       'not_playing': 'Không có bài nào',
       'now_playing': 'Đang phát',
+      'import': 'Nhập bài hát',
     },
   };
 
